@@ -378,7 +378,7 @@ CONFIG = {
     "per_ticker_sleep": 0.2,                # Seconds between each ticker fetch
 }
 ```
-
+---
 Installation & Usage
 Requirements
 pip install yfinance pandas numpy matplotlib seaborn tqdm beautifulsoup4 requests openpyxl
