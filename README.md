@@ -215,7 +215,61 @@ its scores:
 
 ### Script Flow
 
-┌─────────────────────────────────────────────────┐ │ SSL Fix + Import + Config │ └─────────────────────┬───────────────────────────┘ │ ┌─────────────────────▼───────────────────────────┐ │ PART 1: Configured Tickers │ │ ┌─────────────────────────────────────────┐ │ │ │ For each ticker: │ │ │ │ 1. yf_ticker_with_retry() │ │ │ │ 2. fetch_growth_data() │ │ │ │ ├─ Income Statement │ │ │ │ ├─ Revenue (before NI recovery) │ │ │ │ ├─ NI Recovery (3 strategies) │ │ │ │ ├─ Balance Sheet → ROIC/ROE │ │ │ │ ├─ Cash Flow → FCF/Conversion │ │ │ │ ├─ Price History → MCap CAGR │ │ │ │ ├─ P/E + PEG │ │ │ │ └─ classify_stock() │ │ │ │ 3. Cache result for Part 2 reuse │ │ │ └─────────────────────────────────────────┘ │ │ Print tables + Generate charts │ └─────────────────────┬───────────────────────────┘ │ 45s cooldown ┌─────────────────────▼───────────────────────────┐ │ PART 2: S&P 500 Full Scan │ │ ┌─────────────────────────────────────────┐ │ │ │ Load S&P 500 list (GitHub CSV) │ │ │ │ For each of ~503 tickers: │ │ │ │ - Check cache (skip if in Part 1) │ │ │ │ - fetch_growth_data() + 0.2s sleep │ │ │ │ - Classify: Outperformer / Overvalued │ │ │ │ (NI CAGR vs MCap CAGR ± 20pp) │ │ │ └─────────────────────────────────────────┘ │ │ Print Outperformer + Overvalued tables │ │ Generate per-stock + comparison charts │ └─────────────────────┬───────────────────────────┘ │ ┌─────────────────────▼───────────────────────────┐ │ PART 3: Valuation Dashboard │ │ ┌─────────────────────────────────────────┐ │ │ │ compute_composite_scores() │ │ │ │ - Percentile rank each pillar │ │ │ │ - Weighted average → Composite Score │ │ │ │ - Sort + Rank │ │ │ └─────────────────────────────────────────┘ │ │ Charts: Sector P/E, P/E Decomp, FCF vs │ │ Growth, ROIC vs P/E, Composite Bar │ │ Exports: CSV, Excel (multi-sheet) │ └─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐ 
+│ SSL Fix + Import + Config │ 
+└─────────────────────┬───────────────────────────┘ 
+│ 
+┌─────────────────────▼───────────────────────────┐ 
+│ PART 1: Configured Tickers 
+│ 
+┌─────────────────────────────────────────┐ 
+│ 
+│ For each ticker: 
+│
+│ 1. yf_ticker_with_retry() 
+│ 
+│ 2. fetch_growth_data() 
+│ 
+│ 
+├─ Income Statement │ 
+│ │ 
+│ ├─ Revenue (before NI recovery) │ │ 
+│ 
+│ ├─ NI Recovery (3 strategies) │ │ 
+│ │ ├─ Balance Sheet → ROIC/ROE │ │ │ 
+│ ├─ Cash Flow → FCF/Conversion │ │ │ 
+│ ├─ Price History → MCap CAGR │ │ │ 
+│ ├─ P/E + PEG │ │ │ │ └─ classify_stock() │ │ 
+│ │ 3. Cache result for Part 2 reuse │ 
+│ │ └─────────────────────────────────────────┘ 
+│ │ Print tables + Generate charts │ 
+└─────────────────────┬───────────────────────────┘ 
+│ 45s cooldown 
+┌─────────────────────▼───────────────────────────┐ 
+│ PART 2: S&P 500 Full Scan │ │ 
+┌─────────────────────────────────────────┐ │ 
+│ │ Load S&P 500 list (GitHub CSV) │ │ 
+│ │ For each of ~503 tickers: │ │ 
+│ │ - Check cache (skip if in Part 1) │ │ 
+│ │ - fetch_growth_data() + 0.2s sleep │ │ 
+│ │ - Classify: Outperformer / Overvalued │ │ 
+│ │ (NI CAGR vs MCap CAGR ± 20pp) │ │
+│ └─────────────────────────────────────────┘ │
+│ Print Outperformer + Overvalued tables │ 
+│ Generate per-stock + comparison charts │
+└─────────────────────┬───────────────────────────┘ 
+│ ┌─────────────────────▼───────────────────────────┐ 
+│ PART 3: Valuation Dashboard │ │ 
+┌─────────────────────────────────────────┐ │ 
+│ │ compute_composite_scores() │ │
+│ │ - Percentile rank each pillar │ │ 
+│ │ - Weighted average → Composite Score │ │
+│ │ - Sort + Rank │ 
+│ │ └─────────────────────────────────────────┘ 
+│ │ Charts: Sector P/E, P/E Decomp, FCF vs │
+│ Growth, ROIC vs P/E, Composite Bar │ 
+│ Exports: CSV, Excel (multi-sheet) │
+└─────────────────────────────────────────────────┘
 
 
 ### Data Pipeline
@@ -323,6 +377,8 @@ CONFIG = {
     "inter_part_cooldown": 45,              # Seconds between Part 1 and Part 2
     "per_ticker_sleep": 0.2,                # Seconds between each ticker fetch
 }
+```
+
 Installation & Usage
 Requirements
 pip install yfinance pandas numpy matplotlib seaborn tqdm beautifulsoup4 requests openpyxl
