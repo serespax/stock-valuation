@@ -83,7 +83,7 @@ CONFIG = {
     "run_sp500_scan": True,
     "plot_quarterly": True,
     "chart_style": "seaborn-v0_8-whitegrid",
-    "output_dir": os.path.join("analysis", 'valuation_output'), #"growth_analysis_output"
+    "output_dir": os.path.join('valuation_output'), 
     "show_plots": False,
     "run_valuation_dashboard": True,
     "composite_weights": {
